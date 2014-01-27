@@ -1,0 +1,120 @@
+<style type="text/css">
+ul.ranking {
+	list-style-type: none;
+	margin:0;
+	padding:0;
+}
+ul.ranking li {
+	display: inline-block;
+}
+ul.ranking li.ranker {
+	width: 20px;
+	height: 20px;
+	border-radius: 20px;
+	border: 3px solid green;
+	-webkit-box-shadow:inset 0 0 0 3px #FFF;
+	box-shadow:inset 0 0 0 3px #FFF;	
+}
+ul.ranking li.ranker.green {
+	background: green;
+}
+ul.ranking li.label.shown {
+	background:green;
+	color:white;
+	padding:2px 4px;
+	font-weight: bold;	
+}
+ul.ranking li.confirmation {
+	display:none;
+}
+ul.ranking li.confirmation.shown {
+	display:block;
+}
+ul.ranking li.confirmation.shown.success {
+	color:green;
+}
+ul.ranking li.confirmation.shown.error {
+	color:red;
+}
+</style>
+
+<ul class="ranking" id="restau1" data-rank="0">
+	<li class="ranker"></li>
+	<li class="ranker"></li>
+	<li class="ranker"></li>
+	<li class="ranker"></li>
+	<li class="ranker"></li>
+	<li class="label"></li>
+	<li class="confirmation"></li>
+</ul>
+<ul class="ranking" id="restau2" data-rank="0">
+	<li class="ranker"></li>
+	<li class="ranker"></li>
+	<li class="ranker"></li>
+	<li class="ranker"></li>
+	<li class="ranker"></li>
+	<li class="label"></li>
+	<li class="confirmation"></li>
+</ul>
+
+<script type="text/javascript" src="http://code.jquery.com/jquery-2.1.0.min.js"></script>
+<script type="text/javascript">
+	(function($){
+
+		var rankingLabels = [
+			'mauvais',
+			'mediocre',
+			'moyen',
+			'bon',
+			'excellent'
+		];
+
+		var apiUrl = 'http://boom.com';
+
+		var $ranking = $('ul.ranking');
+		var $rankingLis = $ranking.children();
+		$ranking.on('mouseover', 'li', function(){
+			var $this = $(this);
+			var $thisParent = $this.parent();
+			var $thisLis = $thisParent.children();
+			var $thisLabel = $thisLis.filter('.label');
+			var thisIndex = $this.index() + 1;
+			var $inferiorLis = $thisParent.find(':lt(' + thisIndex + ')');
+			$thisLis.removeClass('green');
+			$inferiorLis.addClass('green');
+			$thisLabel.text(rankingLabels[$this.index()]).addClass('shown')
+		})
+		$ranking.on('mouseleave', function(){
+			var $this = $(this);
+			var $thisChildren = $this.children();
+			var $thisLabel = $thisChildren.filter('.label');
+			var $inferiorLis = $this.find(':lt(' + $this.attr('data-rank') + ')');
+			$thisChildren.removeClass('green');
+			$inferiorLis.addClass('green');
+			$thisLabel.text('').removeClass('shown')
+		})
+		$ranking.on('click', 'li', function(){
+			var $this = $(this);
+			var $thisParent = $this.parent();
+			var thisId = $thisParent.attr('id');
+			$thisParent.attr('data-rank', $this.index() + 1);
+			rank({
+				id: thisId,
+				ranking: $this.index() + 1
+			}, function(data){
+				$thisParent.find('.confirmation').text('confirmation!').addClass('shown success')
+			}, function(data){
+				$thisParent.find('.confirmation').text('pas confirmation!').addClass('shown error')
+			});
+		})
+		var rank = function(data, success, error){
+			$.ajax({
+			  type: "POST",
+			  url: apiUrl,
+			  data: data,
+			  success: success,
+			  error: error
+			});
+		}
+	})(jQuery)
+</script>
